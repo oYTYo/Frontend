@@ -95,8 +95,8 @@ export default defineComponent({
    ============================ */
 :deep(.el-menu-item),
 :deep(.el-sub-menu__title) {
-  font-size: 25px !important;   /* 字体大小 */
-  height: 60px !important;       /* 菜单高度 */
+  font-size: 32px !important;   /* 字体大小 */
+  height: 100px !important;       /* 菜单高度 */
   line-height: 60px !important;
 }
 

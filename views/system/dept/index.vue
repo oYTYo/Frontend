@@ -288,6 +288,7 @@ function close(type) {
 
     /* === 顶部搜索框部分 (本次修改) === */
     :deep(.top-filter) {
+
       
       /* 控制每个搜索条件项的右间距 */
       .el-form-item {
@@ -323,6 +324,113 @@ function close(type) {
         font-size: 24px; /* 这里设置为 24px */
       }
     }
+    :deep(.total-view) {
+      /* 修改文字“总数”、“已选中”的字体大小 */
+      font-size: 24px; /* <--- 在这里修改字体大小 */
+      color: #333;     /* 可选：修改文字颜色 */
+
+      /* 修改具体数字（如 51, 0）的字体样式 */
+      .total-text {
+        font-size: 28px; /* <--- 在这里修改数字的大小 */
+        font-weight: bold; /* 数字加粗 */
+        color: var(--el-color-primary); /* 数字保持主题色，也可以改成其他颜色 */
+      }
+    }
+
+    :deep(.el-form-item) {
+      /* 1. 修改 Label (如：在线状态) */
+      .el-form-item__label {
+        font-size: 24px !important;
+        line-height: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+      }
+
+      /* 2. 修改普通输入框 (el-input) */
+      .el-input {
+        font-size: 24px !important;
+        height: 40px !important;
+        
+        .el-input__wrapper {
+          height: 40px !important;
+          padding: 0 15px !important;
+        }
+        
+        .el-input__inner {
+          height: 40px !important;
+          line-height: 40px !important;
+          font-size: 24px !important; /* 确保输入文字变大 */
+        }
+      }
+
+      /* 3. 新增：专门修改下拉选择框 (el-select) */
+      .el-select {
+        /* 针对新版 Element Plus 的外框 */
+        .el-select__wrapper {
+          height: 40px !important;
+          min-height: 40px !important;
+          font-size: 24px !important;
+          line-height: 40px !important;
+          padding: 0 15px !important;
+        }
+
+        /* 针对旧版或兼容模式的内部输入框 */
+        .el-input__wrapper {
+          height: 40px !important;
+        }
+        .el-input__inner {
+          height: 40px !important;
+          font-size: 24px !important;
+        }
+
+        /* 修复：针对 "请选择" 占位符文字 */
+        .el-select__placeholder {
+          font-size: 24px !important;
+          /* 强制绝对定位居中，防止掉下去 */
+          position: absolute !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          left: 15px !important; /* 保持与左边框的距离 */
+          
+          line-height: normal !important; /* 重置行高，防止被撑开 */
+          height: auto !important;
+          margin: 0 !important;
+          
+          /* 确保文字颜色正常 */
+          color: var(--el-text-color-placeholder);
+          
+          /* 针对某些版本的兼容性 */
+          display: block !important;
+          width: calc(100% - 30px); /* 防止文字太长溢出 */
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* 针对选中后的文字 */
+        .el-select__selected-item {
+          font-size: 24px !important;
+          line-height: 40px !important;
+          top: 0;
+        }
+      }
+    }
+
+    /* 针对右侧操作栏 (right-action) 的样式穿透 */
+    :deep(.right-action) {
+      .el-button {
+        font-size: 24px !important;
+        height: 45px !important; /* 调高按钮高度，避免文字被切 */
+        padding: 0 20px !important; /* 增加左右内边距，更美观 */
+        
+        /* 调整图标大小，使其与文字协调 */
+        .el-icon {
+          font-size: 24px !important;
+        }
+      }
+    }
+
   }
 
 

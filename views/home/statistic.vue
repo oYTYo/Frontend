@@ -2,7 +2,7 @@
   <div class="statistic-view">
     <div v-for="(statistic, i) in statisticArr" :key="i" :style="`background: ${statistic.color}`">
       <div>
-        <el-icon size="25">
+        <el-icon size="60">
           <m-icon :value="statistic.icon" />
         </el-icon>
         <div>{{ $t(statistic.label) }}</div>
@@ -69,7 +69,7 @@ onMounted(async () => {
 
   > div {
     color: white;
-    font-size: 32px;
+    font-size: 42px;  /* 这里的 font-size 会作为基准，建议保留或微调 */
     border-radius: 10px;
     padding: 20px;
     display: flex;
@@ -82,12 +82,29 @@ onMounted(async () => {
       > :first-child {
         padding-bottom: 10px;
       }
+
+      > div { 
+        font-weight: bold; /* [修改] 给标题文字加粗 */
+      }
     }
 
     > div:last-child {
       font-size: 1.25em;
       font-weight: bold;
     }
+
+    /* [修改位置] 找到这里：左侧容器（包含图标和标题文字） */
+    > div:first-child {
+      display: flex;          /* [新增] 让内部元素(图标和文字)水平排列 */
+      align-items: center;    /* [新增] 让图标和文字垂直居中对齐 */
+
+      /* 针对图标 (el-icon) 的样式调整 */
+      > :first-child {
+        padding-bottom: 0;    /* [修改] 原来是10px，改为0，去掉底部的垂直间距 */
+        margin-right: 15px;   /* [新增] 增加右侧间距，让图标和文字拉开距离 */
+      }
+    }
+    
   }
 }
 </style>

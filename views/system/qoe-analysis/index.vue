@@ -312,21 +312,21 @@ const topFilterColumns = computed(() => [
 ])
 
 const columns = computed(() => [
-  { type: 'index', width: 60 },
+  { type: 'index', width: 100 },
   // 按要求的顺序：IPC编号、在线状态、接入协议、客户端地址、流ID、QoE使能
-  { prop: 'ipcNumber', label: t('system.qoe.ipcNumber'), width: 250 },
-  { prop: 'deviceName', label: t('system.qoe.deviceName'),width: 150 },
+  { prop: 'ipcNumber', label: t('system.qoe.ipcNumber'), width: 200 },
+  { prop: 'deviceName', label: t('system.qoe.deviceName'),width: 180 },
   {
     prop: 'online',
     label: '在线状态',
-    width: 150,
+    width: 180,
     formatter: (row) => row.online ? '在线' : '离线',
     align: 'center'
   },
-  { prop: 'accessProtocol', label: t('system.qoe.accessProtocol'), width: 190 },
-  { prop: 'clientAddress', label: t('system.qoe.clientAddress'), width: 160 },
-  { prop: 'streamId', label: t('system.qoe.streamId') },
-  { prop: 'qoeEnabled', label: t('system.qoe.qoeEnabled'), type: 'select', itemList: booleanOptions, width: 100 },
+  { prop: 'accessProtocol', label: t('system.qoe.accessProtocol'), width: 230 },
+  { prop: 'clientAddress', label: t('system.qoe.clientAddress'), width: 250 },
+  { prop: 'streamId', label: t('system.qoe.streamId'), width: 200 },
+  { prop: 'qoeEnabled', label: t('system.qoe.qoeEnabled'), type: 'select', itemList: booleanOptions, width: 180 },
   // 其余列保持不变
   // { prop: 'transportProtocol', label: t('system.qoe.transportProtocol'), width: 100 },
   // { prop: 'averageBitrate', label: t('system.qoe.averageBitrate'), width: 120 },
@@ -342,7 +342,7 @@ const columns = computed(() => [
         onClick: (row) => viewMetricDetail(row),
         disabled: (row) => row.online === 0
       }
-    ]
+    ], width: 400
   }
 ])
 

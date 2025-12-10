@@ -128,7 +128,7 @@ onMounted(() => {
         font-size: 32px; /* 放大表头字体 */
         padding: 14px 10px; /* 增加内边距 */
         border-bottom: 2px solid #e4e7ed; /* 增加边框粗细 */
-        text-align: left;
+        text-align: center;
         white-space: nowrap;
       }
 
@@ -144,6 +144,7 @@ onMounted(() => {
           border-bottom: 1px solid #f0f0f0;
           vertical-align: middle;
           font-size: 32px; /* 放大单元格字体 */
+          text-align: center;
         }
 
         .index-cell {
@@ -189,6 +190,7 @@ onMounted(() => {
           .name-content {
             display: flex;
             align-items: center;
+            justify-content: center; /* 新增这一行，确保 Flex 布局内部内容水平居中 */
             gap: 8px; /* 增加间距 */
             
             .device-name {

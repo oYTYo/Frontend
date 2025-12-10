@@ -55,7 +55,7 @@ export const devMenus = [
   },
   {
     id: -101,
-    title: '实体指标监控',
+    title: '指标监控',
     name: 'metric-monitor',
     path: 'metric-monitor',
     component: '/src/views/system/metric-monitor/index.vue',
@@ -67,7 +67,7 @@ export const devMenus = [
   },
   {
     id: -102,
-    title: '实体趋势分析',
+    title: '趋势分析',
     name: 'trend-analysis',
     path: 'trend-analysis',
     component: '/src/views/system/trend-analysis/index.vue',

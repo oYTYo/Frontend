@@ -55,6 +55,10 @@ defineOptions({
     grid-column: 4 / 5;
     /* 将 grid-row 从 2 / 5 改为 2，确保与 charts-view 在同一行 */
     grid-row: 2;
+    /* 确保这里没有写死 height，且设置了拉伸 */
+    height: auto; 
+    align-self: stretch; /* [关键] 让组件高度自动拉伸以填满网格单元 */
+    padding: 0 !important; /* [建议] 移除父级内边距，让子组件自己控制，防止双重padding导致溢出或留白 */
   }
 
   .statistic-view {

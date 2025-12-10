@@ -241,7 +241,12 @@ const optionArr: Ref<EChartsOption[]> = computed(() => [
         {
           type: 'value',
           min: 0,
-          max: 100
+          max: 100,
+          axisLabel: {
+            fontSize: 24,      // 设置字体大小为 24px
+            fontWeight: 'bold', // 建议加粗，大号字体不加粗会显得虚
+            color: '#333'       // 可选：设置颜色
+          }
         }
     ],
     series: [
@@ -293,6 +298,10 @@ const optionArr: Ref<EChartsOption[]> = computed(() => [
           min: 0,
           max: 1,
           axisLabel: {
+            fontSize: 24,       // 设置字体大小为 24px
+            fontWeight: 'bold',  // 建议加粗
+            color: '#333',       // 可选：设置颜色
+            // 保留原有的格式化逻辑
             formatter: (value: number) => {
               if (value === 0.5 || value === 1) return value.toString();
               return '';
@@ -414,7 +423,7 @@ watch(
 
 .chart-controls {
   margin-bottom: 4px; /* 进一步减少底部间距 */
-  // margin-top: -8px; /* 减少顶部间距 */
+  margin-top: -8px; /* 减少顶部间距 */
   display: flex;
   justify-content: center; /* 整体居中对齐 */
   align-items: center;
@@ -426,6 +435,8 @@ watch(
 
 /* 刷新按钮样式 */
 .refresh-btn {
+  margin-top: 30px;
+  z-index: 10; // 置顶
   position: absolute; /* 绝对定位 */
   left: 0; /* 靠左边 */
   border-radius: 8px;

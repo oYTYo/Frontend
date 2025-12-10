@@ -8,6 +8,7 @@
           <Breadcrumb v-if="!systemStore.layout.widthShrink" class="breadcrumb" />
         </div>
       </div>
+      <div class="header-center-title">视联网智能QoE管理系统</div>
       <el-link v-if="!systemStore.layout.widthShrink && isDev" style="margin-right: 10px" @click="cp">
         {{ route.meta.component }}
       </el-link>
@@ -16,6 +17,8 @@
     <NavTabs v-if="!systemStore.layout.heightShrink" key="nav-tabs" />
   </div>
 </template>
+
+
 <script setup lang="ts">
 import Action from '@/layout/Action/index.vue'
 import NavTabs from './NavTabs/index.vue'
@@ -52,6 +55,7 @@ const route = useRoute()
     padding: 5px 10px;
     display: flex;
     align-items: center;
+    position: relative;
 
     .collapse-icon {
       margin-right: 15px;
@@ -89,7 +93,7 @@ const route = useRoute()
   }
 
   :deep(.el-link) {
-    font-size: 10%; // 改成你想要的大小
+    font-size: 0%; // 改成你想要的大小
     font-weight: bold; // 可选
   }
 
@@ -97,5 +101,46 @@ const route = useRoute()
     margin-top: 5px;
     width: 100%;
   }
+
+  .header-center-title {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%); /* 绝对居中 */
+      z-index: 10;
+      pointer-events: none; /* 防止遮挡鼠标点击 */
+
+      /* 字体设置 */
+      font-size: 56px; /* 大字体 */
+      font-weight: 900; /* 特粗字体 */
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif; /* 基础字体 */
+      // font-style: italic; /* 倾斜，增加动感 */
+      letter-spacing: 4px; /* 增加字间距 */
+      
+      /* 核心：渐变色文字效果 */
+      background: linear-gradient(120deg, #666666 0%, #999999 100%); /* 亮青到深蓝的渐变 */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      
+      /* 投影效果：增加立体感 */
+      filter: drop-shadow(0 4px 6px rgba(41, 121, 255, 0.3));
+
+      /* 可选：添加一个底部倒影或者是重影效果 */
+      &::after {
+        content: attr(data-text); /* 复制文字内容 */
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: -1;
+        opacity: 0.1;
+        transform: translate(4px, 4px); /* 偏移一点 */
+        background: none;
+        -webkit-text-fill-color: #000; /* 阴影颜色 */
+        filter: blur(2px); /* 模糊处理 */
+      }
+    }
+
+
 }
 </style>
