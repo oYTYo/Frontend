@@ -11,7 +11,7 @@
     </el-select>
 
     <m-table
-      v-if="showAnomaly"
+      v-if="showAnomalyTable"
       :key="selectedType"
       class="m-table"
       ref="tableRef"
@@ -32,13 +32,15 @@
     <!-- 指标区：只有 monitor / trend 显示 -->
     <div
   class="metric-content"
-  v-if="showMetrics || showTrend"
+  v-if="showMetricsPanel || showTrendPanel"
   :class="{
-    'only-metrics': showMetrics,
-    'only-trend': showTrend
+    'only-metrics': isMonitorMode,
+    'only-trend': isTrendMode
   }"
 >
-      <div class="metrics-table" v-if="showMetrics">
+
+      <div class="metrics-table" v-if="showMetricsPanel">
+
         <h3 class="metrics-title">实体指标监控</h3>
 
         <el-table
@@ -46,7 +48,7 @@
           border
           stripe
           size="default"
-          style="width: 560px; font-size: 14px;"
+          style="width: 100%; font-size: 14px;"
           :resizable="false"
           :cell-style="{ padding: '18px 20px', boxSizing: 'border-box', fontSize: '14px' }"
           :header-cell-style="{ padding: '18px 20px', boxSizing: 'border-box', fontSize: '14px' }"
@@ -57,11 +59,12 @@
 
           <!-- ✅ 关键：把“操作/查看趋势”列做成只在 trend 模式显示 -->
           <el-table-column
-          v-if="showTrend"
-          label="操作"
-          width="100"
-          align="center"
+            v-if="showTrendPanel && !isMonitorMode"
+            label="操作"
+            width="100"
+            align="center"
           >
+
           <template #default="scope">
             <el-button 
               type="primary" 
@@ -77,7 +80,7 @@
       </div>
 
       <!-- 趋势区：只有 trend 显示 -->
-      <div class="right-content" v-if="showTrend">
+      <div class="right-content" v-if="showTrendPanel">
         <h3 class="charts-title">实体指标趋势分析</h3>
         <div
           v-for="(o, i) in echartsDomRefs"
@@ -110,10 +113,15 @@ const props = withDefaults(defineProps<{
   mode: 'anomaly'
 })
 
-// 一页只保留一个模块
-const showAnomaly = computed(() => props.mode === 'anomaly')
-const showMetrics = computed(() => props.mode === 'monitor')
-const showTrend   = computed(() => props.mode === 'trend')
+const isAnomalyMode = computed(() => props.mode === 'anomaly')
+const isMonitorMode = computed(() => props.mode === 'monitor')
+const isTrendMode   = computed(() => props.mode === 'trend')
+
+// ✅ anomaly 模式要显示三块
+const showAnomalyTable  = computed(() => isAnomalyMode.value)
+const showMetricsPanel  = computed(() => isAnomalyMode.value || isMonitorMode.value)
+const showTrendPanel    = computed(() => isAnomalyMode.value || isTrendMode.value)
+
 
 //
 const { t } = useI18n()
@@ -715,13 +723,18 @@ async function updateChartData(metric) {
         .metrics-table {
           width: 100% !important;
           flex: 1;
-            }
+        }
+
+        :deep(.el-table) {
+          width: 100% !important;
+        }
       }
 
+      // ✅ 趋势分析独占页面：右栏满宽
       &.only-trend {
         .right-content {
           margin-left: 0 !important;
-          width: 100%;
+          width: 100% !important;
           flex: 1;
         }
       }

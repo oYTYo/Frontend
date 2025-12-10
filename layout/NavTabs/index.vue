@@ -120,4 +120,7 @@ provide('navTab', {
 :deep(.el-scrollbar__bar) {
   display: none;
 }
+
+
+
 </style>

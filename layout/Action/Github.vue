@@ -29,7 +29,7 @@ function open() {
 </script>
 <style scoped lang="scss">
 .icon-style {
-  width: 18px;
-  height: 18px;
+  width: 30px;
+  height: 30px;
 }
 </style>

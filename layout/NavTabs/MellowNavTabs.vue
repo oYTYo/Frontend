@@ -58,12 +58,16 @@ $transition-time: all 0.2s ease;
 
     .tab-icon {
       margin-right: 0.5em;
+      font-size: 30px;   // 图标大小
+      width: 30px;
+      height: 30px;
     }
 
     .tab-title {
       margin-right: 5px;
       white-space: nowrap;
       transition: $transition-time;
+      font-size: 20px;
     }
 
     .close-icon {

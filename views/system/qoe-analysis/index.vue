@@ -482,6 +482,21 @@ async function updateChartData(metric) {
           display: none;
         }
       }
+
+      .el-table__header th {
+      background-color: var(--el-fill-color-light);
+      color: var(--el-text-color-primary);
+      font-weight: 600;
+      
+      /* ⬇️⬇️⬇️ 修改这里 ⬇️⬇️⬇️ */
+      font-size: 32px; /* 原为 15px，建议改为 16px-20px */
+      /* ⬆️⬆️⬆️ 修改这里 ⬆️⬆️⬆️ */
+      
+      height: 45px;
+      border-bottom: 2px solid var(--el-border-color-lighter);
+    }
+
+
     }
   }
 

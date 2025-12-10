@@ -72,7 +72,25 @@ const route = useRoute()
     .action {
       flex-shrink: 0;
       box-shadow: none;
+      font-size: 30px;
+      :deep(.el-icon) {
+        font-size: 30px; // 控制 Element Plus 图标大小
+        width: 30px;     // 可选，宽高也改大
+        height: 30px;
+      }
     }
+  }
+
+  :deep(.breadcrumb) {
+    font-size: 50px; // 想要的字体大小
+    // font-weight: bold; // 可选
+    margin-bottom: 20px; // 可选，左边距也改大
+    margin-top: 10px;
+  }
+
+  :deep(.el-link) {
+    font-size: 10%; // 改成你想要的大小
+    font-weight: bold; // 可选
   }
 
   .nav-tabs {

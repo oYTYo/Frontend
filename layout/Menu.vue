@@ -89,6 +89,30 @@ export default defineComponent({
 })
 </script>
 <style scoped lang="scss">
+
+/* ============================
+   增大侧边栏字体
+   ============================ */
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+  font-size: 25px !important;   /* 字体大小 */
+  height: 60px !important;       /* 菜单高度 */
+  line-height: 60px !important;
+}
+
+/* ============================
+   增大图标
+   ============================ */
+:deep(.menu-icon) {
+  font-size: 25px !important;    /* m-icon 走 font-size */
+  width: 25px !important;
+  height: 25px !important;
+  margin-right: 10px;
+}
+
+/* ============================
+   保留你原本的激活样式
+   ============================ */
 :deep(.el-menu-item) {
   &.is-active {
     background-color: var(--el-menu-active-bg-color);
@@ -104,4 +128,6 @@ export default defineComponent({
     }
   }
 }
+
 </style>
+

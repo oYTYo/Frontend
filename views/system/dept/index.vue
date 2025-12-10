@@ -131,23 +131,23 @@ const topFilterColumns = computed(() => [
 ])
 
 const columns = computed(() => [
-  { type: 'index', width: 60 },
+  { type: 'index', width: 100 },
   { prop: 'ipcNumber', label: t('system.qoe.ipcNumber'), width: 200 },
-  { prop: 'deviceName', label: t('system.qoe.deviceName') },
+  { prop: 'deviceName', label: t('system.qoe.deviceName'), width: 180 },
   {
     prop: 'online',
     label: '在线状态',
-    width: 100,
+    width: 180,
     formatter: (row) => row.online ? '在线' : '离线',
     align: 'center'
   },
-  { prop: 'accessProtocol', label: t('system.qoe.accessProtocol'), width: 150 },
-  { prop: 'clientAddress', label: t('system.qoe.clientAddress'), width: 140 },
-  { prop: 'streamId', label: t('system.qoe.streamId') },
-  { prop: 'qoeEnabled', label: t('system.qoe.qoeEnabled'), type: 'select', itemList: booleanOptions, width: 100 },
-  { prop: 'transportProtocol', label: t('system.qoe.transportProtocol'), width: 100 },
+  { prop: 'accessProtocol', label: t('system.qoe.accessProtocol'), width: 230 },
+  { prop: 'clientAddress', label: t('system.qoe.clientAddress'), width: 250 },
+  { prop: 'streamId', label: t('system.qoe.streamId'), width: 200 },
+  { prop: 'qoeEnabled', label: t('system.qoe.qoeEnabled'), type: 'select', itemList: booleanOptions, width: 180 },
+  { prop: 'transportProtocol', label: t('system.qoe.transportProtocol'), width: 200 },
   // { prop: 'averageBitrate', label: t('system.qoe.averageBitrate'), width: 120 },
-  { prop: 'createTime', label: t('system.qoe.createTime'), type: 'datetime', width: 155 },
+  { prop: 'createTime', label: t('system.qoe.createTime'), type: 'datetime', width: 350 },
   {
     type: 'operation',
     fixed: 'right',
@@ -165,7 +165,7 @@ const columns = computed(() => [
         type: 'danger',
         onClick: (row) => del([row])
       }
-    ]
+    ], width: 200
   }
 ])
 
@@ -272,10 +272,61 @@ function close(type) {
     }
   }
 
-  .m-table {
+.m-table {
     width: 0;
     flex-grow: 1;
+
+    /* === 表格部分 === */
+    /* 调整表格行高 */
+    :deep(.el-table__cell) {
+      padding: 12px 0; 
+    }
+    /* 调整表格内字体行高，防止大号字体被裁剪 */
+    :deep(.el-table .cell) {
+      line-height: 1.5;
+    }
+
+    /* === 顶部搜索框部分 (本次修改) === */
+    :deep(.top-filter) {
+      
+      /* 控制每个搜索条件项的右间距 */
+      .el-form-item {
+        margin-right: 15px;  /* 调小这个值，间隔变小 */
+        margin-bottom: 10px;
+      }
+
+      /* 强制限制输入框宽度 */
+      .el-input, .el-select {
+        width: 160px; /* 调小这个值，输入框变窄，更省空间 */
+      }
+
+      /* 标签文字样式 */
+      .el-form-item__label {
+        font-size: 32px; /* 你的大号字体 */
+        font-weight: bold;
+        color: #333;
+      }
+
+      /* 输入框内部文字样式 */
+      .el-input__inner {
+        font-size: 24px;
+      }
+
+      /* 按钮样式 */
+      .el-button {
+        font-size: 24px;
+      }
+    }
+
+    :deep(.operation-button) {
+      .el-link {
+        font-size: 24px; /* 这里设置为 24px */
+      }
+    }
   }
+
+
+
 }
 
 .width-shrink-layout {
