@@ -29,7 +29,7 @@
           border
           stripe
           size="default"
-          style="width: 560px;"
+          style="width: 100%;" height="100%"
           :resizable="false"
           :cell-style="{ padding: '18px 20px', boxSizing: 'border-box' }"
           :header-cell-style="{ padding: '18px 20px', boxSizing: 'border-box' }"
@@ -124,7 +124,7 @@ const optionArr = ref([
     title: {
       text: 'QoE评分趋势分析',
       textStyle: {
-        fontSize: 16,
+        fontSize: 24, // 【修改】标题字体 24px
         fontWeight: 'bold',
         color: '#333'
       }
@@ -146,16 +146,17 @@ const optionArr = ref([
       }
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '8%',
-      top: '15%',
+      left: '5%',    // 【调整】增加左侧边距，容纳大号Y轴文字
+      right: '6%',
+      bottom: '15%', // 【调整】增加底部边距，容纳大号X轴文字
+      top: '20%',    // 【调整】增加顶部边距，容纳大号标题
       containLabel: true
     },
     xAxis: [
       {
         type: 'category',
         boundaryGap: false,
+        // 【修复】恢复初始横轴数据，防止页面加载时横轴消失
         data: Array.from({ length: 50 }, (_, i) => `${i + 1}秒`),
         axisLine: {
           lineStyle: {
@@ -164,7 +165,8 @@ const optionArr = ref([
         },
         axisLabel: {
           color: '#666',
-          fontSize: 12
+          fontSize: 24, // 【修改】横轴刻度字体 24px
+          fontWeight: 'bold'
         },
         axisTick: {
           show: false
@@ -180,8 +182,9 @@ const optionArr = ref([
         splitNumber: 4,
         nameTextStyle: {
           color: '#666',
-          fontSize: 12,
-          padding: [0, 30, 0, 0]
+          fontSize: 24, // 【修改】纵轴名称字体 24px
+          padding: [0, 50, 0, 0], // 【调整】增加padding防止文字重叠
+          fontWeight: 'bold'
         },
         axisLine: {
           show: false
@@ -191,7 +194,8 @@ const optionArr = ref([
         },
         axisLabel: {
           color: '#666',
-          fontSize: 12
+          fontSize: 24, // 【修改】纵轴刻度字体 24px
+          fontWeight: 'bold'
         },
         splitLine: {
           lineStyle: {
@@ -245,6 +249,7 @@ const optionArr = ref([
             shadowBlur: 10
           }
         },
+        // 【修复】恢复初始曲线数据，防止页面加载时曲线消失
         data: [3.8, 4.2, 3.6, 4.5, 3.9, 4.1, 4.3]
       }
     ]
@@ -314,19 +319,19 @@ const topFilterColumns = computed(() => [
 const columns = computed(() => [
   { type: 'index', width: 100 },
   // 按要求的顺序：IPC编号、在线状态、接入协议、客户端地址、流ID、QoE使能
-  { prop: 'ipcNumber', label: t('system.qoe.ipcNumber'), width: 200 },
-  { prop: 'deviceName', label: t('system.qoe.deviceName'),width: 180 },
+  { prop: 'ipcNumber', label: t('system.qoe.ipcNumber'), width: 300 },
+  { prop: 'deviceName', label: t('system.qoe.deviceName'),width: 220 },
   {
     prop: 'online',
     label: '在线状态',
-    width: 180,
+    width: 220,
     formatter: (row) => row.online ? '在线' : '离线',
     align: 'center'
   },
-  { prop: 'accessProtocol', label: t('system.qoe.accessProtocol'), width: 230 },
+  { prop: 'accessProtocol', label: t('system.qoe.accessProtocol'), width: 300 },
   { prop: 'clientAddress', label: t('system.qoe.clientAddress'), width: 250 },
-  { prop: 'streamId', label: t('system.qoe.streamId'), width: 200 },
-  { prop: 'qoeEnabled', label: t('system.qoe.qoeEnabled'), type: 'select', itemList: booleanOptions, width: 180 },
+  { prop: 'streamId', label: t('system.qoe.streamId'), width: 300 },
+  { prop: 'qoeEnabled', label: t('system.qoe.qoeEnabled'), type: 'select', itemList: booleanOptions, width: 200 },
   // 其余列保持不变
   // { prop: 'transportProtocol', label: t('system.qoe.transportProtocol'), width: 100 },
   // { prop: 'averageBitrate', label: t('system.qoe.averageBitrate'), width: 120 },
@@ -342,7 +347,7 @@ const columns = computed(() => [
         onClick: (row) => viewMetricDetail(row),
         disabled: (row) => row.online === 0
       }
-    ], width: 400
+    ], width: 350
   }
 ])
 
@@ -379,37 +384,57 @@ function viewMetricDetail(metric) {
 
 // 更新图表数据的函数
 async function updateChartData(metric) {
-  // 异步获取趋势数据
-  const res = await getQoeMetricTrendData(metric.name)
-  console.log('获取的趋势数据:', res.data.data.trend)
-  const newData = res.data.data.trend
-  // console.log('测试获取的趋势数据:', newData)
-  const chartTitle = `${metric.name}趋势分析`
-  
-  console.log('更新图表数据:', chartTitle, newData)
-  // 更新optionArr中的配置
-  optionArr.value[0].title.text = chartTitle
-  optionArr.value[0].series[0].name = metric.name
-  optionArr.value[0].series[0].data = newData
-  
-  // 根据指标类型调整Y轴配置
-  const yAxisConfig = {
-    '视频清晰度': { name: '清晰度评分', min: 0, max: 100 },
-    '视频流畅度': { name: '流畅度评分', min: 0, max: 100 },
-    '视频卡顿率': { name: '卡顿', min: -1, max: 2 },
-    '码率': { name: '码率(Mbps)', min: 0, max: 2 },
-    '丢包': { name: '丢包率(%)', min: 0, max: 25 },
-    '抖动': { name: '抖动(ms)', min: 0, max: 100 },
-    '吞吐量': { name: '吞吐量(Mbps)', min: 0, max: 2 }
+  try {
+    // 异步获取趋势数据
+    const res = await getQoeMetricTrendData(metric.name)
+    // 增加空值保护，如果后端返回空，默认为空数组
+    const newData = res?.data?.data?.trend || []
+    
+    const chartTitle = `${metric.name}趋势分析`
+    
+    console.log('更新图表数据:', chartTitle, '数据点数:', newData.length)
+    
+    // 1. 更新标题
+    optionArr.value[0].title.text = chartTitle
+    
+    // 2. 更新系列数据
+    optionArr.value[0].series[0].name = metric.name
+    optionArr.value[0].series[0].data = newData
+    
+    // 3. 【核心修复】自适应横轴范围
+    // 根据新数据的长度动态生成 1秒, 2秒... N秒 的标签
+    // 如果没有数据，保持原横轴或清空，这里选择清空以匹配空数据
+    if (newData.length > 0) {
+      const newXAxisData = Array.from({ length: newData.length }, (_, i) => `${i + 1}秒`)
+      optionArr.value[0].xAxis[0].data = newXAxisData
+    } else {
+      optionArr.value[0].xAxis[0].data = []
+    }
+
+    // 4. 根据指标类型动态调整Y轴范围配置
+    const yAxisConfig = {
+      '视频清晰度': { name: '清晰度评分', min: 0, max: 100 },
+      '视频流畅度': { name: '流畅度评分', min: 0, max: 100 },
+      '视频卡顿率': { name: '卡顿', min: -1, max: 2 },
+      '码率': { name: '码率(Mbps)', min: 0, max: 2 },
+      '丢包': { name: '丢包率(%)', min: 0, max: 25 },
+      '抖动': { name: '抖动(ms)', min: 0, max: 100 },
+      '吞吐量': { name: '吞吐量(Mbps)', min: 0, max: 2 }
+    }
+    
+    const yConfig = yAxisConfig[metric.name] || { name: 'QoE评分', min: 1, max: 5 }
+    optionArr.value[0].yAxis[0].name = yConfig.name
+    optionArr.value[0].yAxis[0].min = yConfig.min
+    optionArr.value[0].yAxis[0].max = yConfig.max
+    
+    // 5. 触发图表重绘
+    if (echartsDomRefs[0]) {
+      echartsDomRefs[0].setOption(optionArr.value[0], true) // true表示不合并，彻底更新配置
+    }
+  } catch (error) {
+    console.error('更新图表数据失败:', error)
+    ElMessage.error('获取趋势数据失败')
   }
-  
-  const yConfig = yAxisConfig[metric.name] || { name: 'QoE评分', min: 1, max: 5 }
-  optionArr.value[0].yAxis[0].name = yConfig.name
-  optionArr.value[0].yAxis[0].min = yConfig.min
-  optionArr.value[0].yAxis[0].max = yConfig.max
-  
-  // 触发图表更新
-  echartsDomRefs[0].setOption(optionArr.value[0])
 }
 
 </script>
@@ -425,121 +450,300 @@ async function updateChartData(metric) {
 
   .m-table {
     flex-shrink: 0;
-    height:300px;
+    height:400px;
     border: 2px solid rgb(255, 0, 51); /* 添加红色边框用于调试 */
+
+    /* ------------------- 以下为新增同步的样式 ------------------- */
+
+    /* 1. 表格行高与内容垂直居中 */
+    :deep(.el-table__cell) {
+      padding: 12px 0 !important; /* 增加单元格上下内边距 */
+    }
+    :deep(.el-table .cell) {
+      line-height: 1.5; /* 防止大号字体被裁剪 */
+    }
+
+    /* 2. 顶部搜索框 (Top Filter) 样式 */
+    :deep(.top-filter) {
+      /* 搜索项间距 */
+      .el-form-item {
+        margin-right: 15px;
+        margin-bottom: 10px;
+      }
+      /* 输入框宽度限制 */
+      .el-input, .el-select {
+        width: 160px;
+      }
+      /* Label字体 (如: IPC编号) */
+      .el-form-item__label {
+        font-size: 32px; 
+        font-weight: bold;
+        color: #333;
+      }
+      /* 输入框内容字体 */
+      .el-input__inner {
+        font-size: 24px;
+      }
+      /* 按钮字体 */
+      .el-button {
+        font-size: 24px;
+      }
+    }
+
+    /* 3. 操作栏链接文字大小 */
+    :deep(.operation-button) {
+      .el-link {
+        font-size: 24px;
+      }
+    }
+
+    /* 4. 分页栏总数/选中数文字大小 */
+    :deep(.total-view) {
+      font-size: 24px;
+      color: #333;
+      .total-text {
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--el-color-primary);
+      }
+    }
+
+    /* 5. 全局表单控件强行覆盖 (Input, Select) */
+    :deep(.el-form-item) {
+      /* Label */
+      .el-form-item__label {
+        font-size: 24px !important;
+        line-height: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+      }
+
+      /* Input */
+      .el-input {
+        font-size: 24px !important;
+        height: 40px !important;
+        
+        .el-input__wrapper {
+          height: 40px !important;
+          padding: 0 15px !important;
+        }
+        
+        .el-input__inner {
+          height: 40px !important;
+          line-height: 40px !important;
+          font-size: 24px !important;
+        }
+      }
+
+      /* Select (下拉框) 特殊处理 */
+      .el-select {
+        .el-select__wrapper {
+          height: 40px !important;
+          min-height: 40px !important;
+          font-size: 24px !important;
+          line-height: 40px !important;
+          padding: 0 15px !important;
+        }
+        .el-input__wrapper {
+          height: 40px !important;
+        }
+        .el-input__inner {
+          height: 40px !important;
+          font-size: 24px !important;
+        }
+        /* 修复 placeholder 位置 */
+        .el-select__placeholder {
+          font-size: 24px !important;
+          position: absolute !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          left: 15px !important;
+          line-height: normal !important;
+          height: auto !important;
+          margin: 0 !important;
+          color: var(--el-text-color-placeholder);
+          display: block !important;
+          width: calc(100% - 30px);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        /* 选中项 */
+        .el-select__selected-item {
+          font-size: 24px !important;
+          line-height: 40px !important;
+          top: 0;
+        }
+      }
+    }
+
+    /* 6. 右侧功能按钮 (新增, 批量启用等) */
+    :deep(.right-action) {
+      .el-button {
+        font-size: 24px !important;
+        height: 45px !important;
+        padding: 0 20px !important;
+        .el-icon {
+          font-size: 24px !important;
+        }
+      }
+    }
     
     // 美化m-table样式
     :deep(.el-table) {
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-      
+
+      /* 1. 表头样式 (Header) */
       .el-table__header th {
         background-color: var(--el-fill-color-light);
         color: var(--el-text-color-primary);
         font-weight: 600;
-        font-size: 15px;
-        height: 45px;
+        
+        /* 核心修改：字号32px，高度60px，居中 */
+        font-size: 32px !important;
+        height: 60px !important;
+        text-align: center !important;
         border-bottom: 2px solid var(--el-border-color-lighter);
-      }
-      
-      .el-table__body td {
-        height: 46px;
-        padding: 8px;
-        font-size: 15px;
-        border-bottom: 1px solid var(--el-border-color-extra-light);
+
+        /* 确保表头文字垂直水平居中 */
+        .cell {
+          justify-content: center !important;
+          display: flex;
+          align-items: center;
+          line-height: 1.5;
+        }
       }
 
+      /* 2. 表格内容样式 (这里是本次修改的重点！！！) */
+      .el-table__body td {
+        font-size: 32px !important;
+        height: 60px !important;
+        padding: 12px 0 !important;
+        border-bottom: 1px solid var(--el-border-color-extra-light);
+
+        /* ⬇️⬇️⬇️ 关键修改：取消 Flex，改回默认 Block 布局 ⬇️⬇️⬇️ */
+        .cell {
+          font-size: 32px !important;
+          line-height: 36px !important; /* 设置行高与字体相近，防止被撑太高 */
+          
+          /* 使用文本居中，而不是 Flex 居中 */
+          text-align: center !important; 
+          
+          /* 强制不换行，这是出省略号的前提 */
+          white-space: nowrap !important;
+          
+          /* 恢复 Element Plus 默认的 block 显示，这样 text-overflow 才能生效 */
+          display: block !important; 
+          
+          /* 确保溢出隐藏 */
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+        }
+      }
+
+      /* 3. 行样式 (Row) */
       .el-table__row {
+        height: 60px !important; /* 强制行高适配大字体 */
         transition: background-color 0.3s ease;
-        
+
         &:hover {
           background-color: var(--el-fill-color-extra-light);
         }
-        
+
         &:nth-child(even) {
           background-color: rgba(0, 0, 0, 0.02);
         }
       }
 
-      // 美化操作按钮
+      /* 4. 操作按钮美化 (Button) */
       .el-button {
         border-radius: 6px;
         font-weight: 500;
-        font-size: 13px;
-        transition: all 0.3s ease;
         
+        /* 修改：按钮字体放大到24px以匹配表格 */
+        font-size: 24px !important; 
+        padding: 8px 16px; /* 增加内边距防止文字拥挤 */
+        height: auto;
+        
+        transition: all 0.3s ease;
+
         &:hover {
           transform: translateY(-1px);
         }
+        
+        /* 图标也同步放大 */
+        .el-icon {
+            font-size: 24px !important;
+        }
       }
 
+      /* 5. 去除多余边框 */
       &.el-table--border {
         border-left: none;
         border-right: none;
-        
+
         &::after {
           display: none;
         }
       }
-
-      .el-table__header th {
-      background-color: var(--el-fill-color-light);
-      color: var(--el-text-color-primary);
-      font-weight: 600;
-      
-      /* ⬇️⬇️⬇️ 修改这里 ⬇️⬇️⬇️ */
-      font-size: 32px; /* 原为 15px，建议改为 16px-20px */
-      /* ⬆️⬆️⬆️ 修改这里 ⬆️⬆️⬆️ */
-      
-      height: 45px;
-      border-bottom: 2px solid var(--el-border-color-lighter);
     }
 
 
-    }
   }
 
   .metric-content {
-    flex: 1;
-    border: 2px solid rgb(0, 255, 0); /* 添加绿色边框用于调试 */
-    padding: 15px;
+    /* --- 修改点 4：限制父容器高度，防止超出屏幕 --- */
+    height: 650px; /* 固定一个合适的高度，或者使用 calc(100vh - 380px) */
+    flex-shrink: 0; /* 防止被压缩 */
+    
+    border: 2px solid rgb(0, 255, 0); /* 调试边框（可按需保留或删除） */
+    padding: 10px;
     border-radius: var(--el-border-radius-base);
     background-color: var(--el-bg-color);
-    overflow-y: auto;
-    min-height: 200px; /* 确保最小高度 */
+    overflow: hidden; /* 防止溢出 */
     display: flex;
     gap: 10px;
 
+    /* --- 左侧表格区域 --- */
     .metrics-table {
-      width: 600px;
+      /* --- 修改点 3：增加左侧宽度，防止文字换行 --- */
+      width: 750px; 
       flex-shrink: 0;
+      
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       border-radius: 12px;
       padding: 10px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       border: 1px solid var(--el-border-color-extra-light);
       
-      // 定义字体大小变量
-      --metrics-font-size: 20px;
-      --metrics-header-font-size: 18px;
-      --metrics-unit-font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 100%; /* 占满父容器定义的 480px */
+
+      /* 定义变量 */
+      --metrics-font-size: 32px;
+      --metrics-header-font-size: 32px;
+      --metrics-unit-font-size: 32px;
 
       .metrics-title {
-        margin: 0 0 20px 0;
-        font-size: 20px;
+        margin: 0 0 10px 0; /* 减少间距 */
+        font-size: 32px; 
         font-weight: 700;
         color: var(--el-text-color-primary);
-        padding: 0 0 15px 0;
+        padding: 0 0 10px 0;
         border-bottom: 3px solid transparent;
         background: linear-gradient(90deg, var(--el-color-primary), var(--el-color-primary-light-3)) bottom/100% 3px no-repeat;
         position: relative;
         text-align: center;
+        flex-shrink: 0;
         
         &::before {
           content: '📊';
           margin-right: 8px;
-          font-size: 18px;
+          font-size: 32px;
         }
         
         &::after {
@@ -560,25 +764,48 @@ async function updateChartData(metric) {
         font-size: var(--metrics-font-size);
         border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+        box-shadow: none;
         border: none;
         background: #ffffff;
         table-layout: fixed;
         
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .el-table__inner-wrapper {
+          height: 100% !important;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .el-table__body-wrapper {
+          flex: 1;
+          .el-scrollbar, .el-scrollbar__wrap, .el-scrollbar__view {
+            height: 100% !important;
+          }
+          .el-table__body {
+            height: 100%; 
+          }
+        }
+        
         .el-table__header-wrapper {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          flex-shrink: 0;
           
           th {
             font-size: var(--metrics-header-font-size);
             font-weight: 700;
             background: transparent !important;
-            color: #0866f1 !important;
-            height: 60px;
+            
+            /* --- 修改点 1：改回深色字体，确保可见 --- */
+            color: #333333 !important; 
+            
+            height: 60px; /* 稍微减小表头高度 */
             border-bottom: none;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             position: relative;
             white-space: nowrap;
-            padding: 18px 20px; // 表头单元格内边距：上下18px，左右20px
+            padding: 10px 5px; /* 减少左右 padding */
             
             &::before {
               content: '';
@@ -594,11 +821,11 @@ async function updateChartData(metric) {
               display: flex;
               align-items: center;
               justify-content: center;
-              gap: 4px;
               width: 100%;
               box-sizing: border-box;
               overflow: hidden;
               text-overflow: ellipsis;
+              line-height: 1.2;
             }
           }
         }
@@ -606,11 +833,14 @@ async function updateChartData(metric) {
         .el-table__body {
           td {
             font-size: var(--metrics-font-size);
-            line-height: 1.5;
-            height: 65px;
-            padding: 18px 20px;
+            /* --- 修改点 2：增加行高，并使用 flex 布局垂直居中 --- */
+            line-height: 1.5; 
+            
+            /* 减少 padding，因为字体大了，空间有限，靠 height:100% 自动分配 */
+            padding: 0 10px; 
+            
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            border-right: 1px solid rgba(0, 0, 0, 0.1); // 添加垂直分隔线
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
             white-space: nowrap;
@@ -618,27 +848,34 @@ async function updateChartData(metric) {
             text-overflow: ellipsis;
             box-sizing: border-box;
             
+            /* 关键：使用 flex 布局让内部文本框自动垂直居中且撑开 */
+            .cell {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                line-height: normal; /* 重置 cell 默认行高 */
+            }
+
             &:last-child {
-              border-right: none; // 最后一列不需要右边框
+              border-right: none;
             }
             
-            // 指标名称列美化
             &:nth-child(1) {
               font-weight: 500;
               color: var(--el-text-color-primary);
               text-align: center;
             }
             
-            // 合并的数值列美化
             &:nth-child(2) {
               .metric-value {
                 font-weight: 600;
                 color: var(--el-color-primary);
                 font-family: 'Consolas', 'Monaco', monospace;
-                margin-right: 5px;
+                margin-right: 10px;
                 display: inline-block;
-                box-sizing: border-box;
                 text-align: center;
+                font-size: 32px;
               }
               
               .metric-unit {
@@ -651,10 +888,13 @@ async function updateChartData(metric) {
               }
             }
             
-            // 操作列
             &:nth-child(3) {
-              padding: 15px 20px;
+              padding: 0 5px;
             }
+          }
+          
+          tr {
+             height: 100%; 
           }
         }
 
@@ -664,7 +904,6 @@ async function updateChartData(metric) {
           &:hover {
             background: linear-gradient(90deg, rgba(64, 158, 255, 0.08), rgba(103, 126, 234, 0.05)) !important;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             
             td {
               border-bottom-color: rgba(64, 158, 255, 0.2);
@@ -680,39 +919,25 @@ async function updateChartData(metric) {
           }
         }
 
-        // 美化查看按钮
         .el-button {
-          border-radius: 10px;
-          padding: 10px 18px;
+          border-radius: 8px;
+          /* 调整按钮 padding，适应变高后的行 */
+          padding: 8px 16px; 
           font-weight: 600;
-          font-size: 14px;
+          font-size: 32px;
+          height: auto;
           background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
           border: none;
           color: white;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
           overflow: hidden;
-          min-width: 70px;
-          
-          &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-          }
+          min-width: 80px;
           
           &:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(64, 158, 255, 0.4);
             background: linear-gradient(135deg, var(--el-color-primary-light-3), var(--el-color-primary));
-            
-            &::before {
-              left: 100%;
-            }
           }
           
           &:active {
@@ -721,86 +946,63 @@ async function updateChartData(metric) {
           }
         }
 
-        // 去掉默认边框
+        /* 隐藏其他不必要的表格元素 */
         &.el-table--border {
           border: none;
-          
-          &::after {
-            display: none;
-          }
-          
-          td, th {
-            border-right: 1px solid rgba(0, 0, 0, 0.1); // 添加单元格右侧边框
-          }
-          
-          // 最后一列不显示右边框
-          td:last-child, th:last-child {
-            border-right: none;
-          }
+          &::after { display: none; }
+          td, th { border-right: 1px solid rgba(0, 0, 0, 0.1); }
+          td:last-child, th:last-child { border-right: none; }
         }
         
-        &.el-table--striped {
-          .el-table__body tr.el-table__row--striped td {
+        &.el-table--striped .el-table__body tr.el-table__row--striped td {
             background: rgba(0, 0, 0, 0.02);
-          }
         }
         
-        // 禁用列宽调整
-        .el-table__header th .el-table__column-filter-trigger {
-          display: none;
-        }
+        .el-table__header th .el-table__column-filter-trigger { display: none; }
         
         .el-table__header-wrapper .el-table__header th {
           user-select: none;
           resize: none;
-          
-          &::after {
-            display: none !important;
-          }
+          &::after { display: none !important; }
         }
         
-        // 确保列宽一致
-        .el-table__header colgroup col,
-        .el-table__body colgroup col {
-          width: auto !important; // 使用我们设置的宽度
-        }
+        .el-table__header colgroup col, .el-table__body colgroup col { width: auto !important; }
         
-        // 修复多余空列问题和列宽不一致问题
-        .el-table__body,
-        .el-table__header {
+        .el-table__body, .el-table__header {
           width: 100% !important;
           table-layout: fixed !important;
         }
         
-        .el-table__body-wrapper,
-        .el-table__header-wrapper {
+        .el-table__body-wrapper, .el-table__header-wrapper {
           width: 100% !important;
           overflow: hidden;
         }
         
-        // 确保表头和单元格列宽一致
-        .el-table__cell {
-          box-sizing: border-box !important;
-        }
+        .el-table__cell { box-sizing: border-box !important; }
       }
     }
 
+    /* --- 右侧图表区域 --- */
     .right-content {
-      flex: 1;
+      flex: 1; /* 保持 flex: 1，由于左侧变宽，右侧会自动缩小一点 */
+      
+      /* --- 修改点 4：高度与左侧一致 --- */
+      height: 100%; 
+      
       padding: 15px;
       border-radius: 12px;
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      margin-left: 20px;
+      /* margin-left: 20px; */ /* 不需要 margin-left，父容器有 gap: 10px */
       display: flex;
       flex-direction: column;
       
       .charts-title {
-        margin: 0 0 20px 0;
-        font-size: 20px;
+        margin: 0 0 10px 0;
+        font-size: 32px; /* 统一 32px */
         font-weight: 700;
         color: var(--el-text-color-primary);
-        padding: 0 0 15px 0;
+        padding: 0 0 10px 0;
         border-bottom: 3px solid transparent;
         background: linear-gradient(90deg, var(--el-color-primary), var(--el-color-primary-light-3)) bottom/100% 3px no-repeat;
         position: relative;
@@ -809,7 +1011,7 @@ async function updateChartData(metric) {
         &::before {
           content: '📈';
           margin-right: 8px;
-          font-size: 18px;
+          font-size: 32px;
         }
         
         &::after {
@@ -827,8 +1029,8 @@ async function updateChartData(metric) {
       }
       
       .charts-item {
-        flex: 1;
-        min-height: 280px;
+        flex: 1; /* 占满剩余高度 */
+        min-height: 0; /* 允许压缩 */
         border-radius: 10px;
         background: white;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
