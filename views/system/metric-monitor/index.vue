@@ -80,6 +80,7 @@
               <template #header><span>📈 数值</span></template>
               <template #default="scope">
                 <span class="metric-value">{{ scope.row.value }}</span>
+                <span class="metric-unit" v-if="scope.row.unit">{{ scope.row.unit }}</span>
               </template>
             </el-table-column>
             
@@ -108,9 +109,9 @@ import {
 } from '@/api/system/anomaly'
 import { Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { useI18n } from 'vue-i18n'
+// import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+// const { t } = useI18n()
 
 // ================= QoE 数据逻辑 (左侧) =================
 const qoeMetricsData = ref([])
@@ -134,22 +135,22 @@ const entityMetricsData = ref<any[]>([])
 
 // 字段定义
 const containerMetricFields = [
-  { prop: 'processes', label: t('system.anomaly.container.processes') || '进程数' },
-  { prop: 'cpuUsage', label: t('system.anomaly.container.cpuUsage') || 'CPU使用率' },
-  { prop: 'memory', label: t('system.anomaly.container.memory') || '内存使用' },
-  { prop: 'writesBytes', label: t('system.anomaly.container.writesBytes') || '写入字节' },
-  { prop: 'readsBytes', label: t('system.anomaly.container.readsBytes') || '读取字节' },
-  { prop: 'receiveBytes', label: t('system.anomaly.container.receiveBytes') || '接收字节' },
-  { prop: 'transmitBytes', label: t('system.anomaly.container.transmitBytes') || '传输字节' },
-  { prop: 'receivePackets', label: t('system.anomaly.container.receivePackets') || '接收包数' },
-  { prop: 'transmitPackets', label: t('system.anomaly.container.transmitPackets') || '传输包数' }
+  { prop: 'processes', label: '进程数', unit: '个' },
+  { prop: 'cpuUsage', label: 'CPU使用率', unit: '%' },
+  { prop: 'memory', label: '内存使用', unit: 'B' },
+  { prop: 'writesBytes', label: '写入字节', unit: 'B' },
+  { prop: 'readsBytes', label: '读取字节', unit: 'B' },
+  { prop: 'receiveBytes', label: '接收字节', unit: 'B' },
+  { prop: 'transmitBytes', label: '传输字节', unit: 'B' },
+  { prop: 'receivePackets', label: '接收包数', unit: '个' },
+  { prop: 'transmitPackets', label: '传输包数', unit: '个' }
 ]
 
 const networkMetricFields = [
-  { prop: 'jitter', label: t('system.anomaly.network.jitter') || '抖动' },
-  { prop: 'throughout', label: t('system.anomaly.network.throughout') || '吞吐量' },
-  { prop: 'packetLoss', label: t('system.anomaly.network.packetLoss') || '丢包率' },
-  { prop: 'rtt', label: t('system.anomaly.network.rtt') || '往返时延' }
+  { prop: 'jitter', label: '网络抖动', unit: 'ms' },
+  { prop: 'throughout', label: '网络吞吐量', unit: 'Mbps' },
+  { prop: 'packetLoss', label: '网络丢包率', unit: '%' },
+  { prop: 'rtt', label: '网络延时', unit: 'ms' }
 ]
 
 // 获取实体列表
@@ -240,7 +241,8 @@ const updateEntityMetricsTable = (dataObj) => {
     return {
       label: field.label,
       prop: field.prop,
-      value: displayValue
+      value: displayValue,
+      unit: field.unit || '' // 【修改】绑定单位字段
     }
   })
 }
@@ -308,7 +310,7 @@ onMounted(() => {
 
   .panel-title {
     margin: 0;
-    font-size: 32px; /* 标题大字体 */
+    font-size: 40px; /* 标题大字体 */
     font-weight: 700;
     color: var(--el-text-color-primary);
     display: flex;
@@ -317,7 +319,7 @@ onMounted(() => {
     &::before {
       content: '📊';
       margin-right: 10px;
-      font-size: 32px;
+      font-size: 40px;
     }
   }
 
@@ -342,11 +344,11 @@ onMounted(() => {
     
     /* 表头 */
     th.el-table__cell {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      background: linear-gradient(135deg, #abb6eb 0%, #c7a4ea 100%) !important;
       height: 60px; /* 固定行高 */
       padding: 10px 0;
       color: #333 !important; /* 深色字体 */
-      font-size: 32px !important;
+      font-size: 36px !important;
       font-weight: 700;
       border-bottom: none;
       
@@ -366,7 +368,7 @@ onMounted(() => {
       border-right: 1px solid rgba(0,0,0,0.1);
       
       .cell {
-        font-size: 32px !important;
+        font-size: 36px !important;
         line-height: normal;
         display: flex;
         align-items: center;
@@ -379,11 +381,11 @@ onMounted(() => {
         font-family: 'Consolas', 'Monaco', monospace;
         font-weight: 600;
         color: var(--el-color-primary);
-        font-size: 32px;
+        font-size: 36px;
       }
       .metric-unit {
         margin-left: 5px;
-        font-size: 24px;
+        font-size: 32px;
         color: #999;
       }
     }
@@ -410,8 +412,8 @@ onMounted(() => {
 
 /* 1. 刷新按钮 & 查看按钮 */
 :deep(.el-button) {
-  font-size: 24px !important;
-  height: 40px !important;
+  font-size: 32px !important;
+  height: 46px !important;
   padding: 0 20px !important;
   border-radius: 8px;
   font-weight: 600;
@@ -435,20 +437,20 @@ onMounted(() => {
   .el-select__wrapper {
     height: 40px !important;
     min-height: 40px !important;
-    font-size: 24px !important;
+    font-size: 32px !important;
     padding: 4px 12px !important;
     border-radius: 8px;
     box-shadow: 0 0 0 1px var(--el-border-color) inset;
   }
   
   .el-select__selected-item {
-    font-size: 24px !important;
+    font-size: 32px !important;
     font-weight: 600;
     color: #333;
   }
   
   .el-select__placeholder {
-    font-size: 24px !important;
+    font-size: 32px !important;
     line-height: 40px !important;
   }
 }
