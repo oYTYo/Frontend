@@ -14,7 +14,7 @@
       </el-link>
       <Action class="action" />
     </div>
-    <NavTabs v-if="!systemStore.layout.heightShrink" key="nav-tabs" />
+    <!-- <NavTabs v-if="!systemStore.layout.heightShrink" key="nav-tabs" /> --> <!-- 隐藏导航栏 -->
   </div>
 </template>
 
@@ -118,13 +118,13 @@ const route = useRoute()
       letter-spacing: 4px; /* 增加字间距 */
       
       /* 核心：渐变色文字效果 */
-      background: linear-gradient(120deg, #666666 0%, #999999 100%); /* 亮青到深蓝的渐变 */
+      background: linear-gradient(120deg, #16181B 0%, #3E444F 100%); /* 亮青到深蓝的渐变 */
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       
       /* 投影效果：增加立体感 */
-      filter: drop-shadow(0 4px 6px rgba(41, 121, 255, 0.3));
+      filter: drop-shadow(0 4px 6px rgba(10, 90, 230, 0.3));
 
       /* 可选：添加一个底部倒影或者是重影效果 */
       &::after {

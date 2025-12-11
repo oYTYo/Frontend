@@ -54,6 +54,7 @@
             </template>
             <template #default="scope">
               <span class="metric-value">{{ scope.row.value }}</span>
+              <span class="metric-unit" v-if="scope.row.unit">{{ scope.row.unit }}</span>
             </template>
           </el-table-column>
 
@@ -137,27 +138,27 @@ const filterParam = reactive({
 // 实体类型选中状态，与 filterParam.type 同步
 const selectedType = ref('network') 
 
-// ================= 3. 指标字段定义 (关键修复点：提前定义) =================
+// ================= 3. 指标字段定义 (修改：移除Label中的单位) =================
 
 // 容器指标定义
 const containerMetricFields = [
-  { prop: 'processes', label: t('system.anomaly.container.processes') || '进程数' },
-  { prop: 'cpuUsage', label: t('system.anomaly.container.cpuUsage') || 'CPU使用率' },
-  { prop: 'memory', label: t('system.anomaly.container.memory') || '内存使用' },
-  { prop: 'writesBytes', label: t('system.anomaly.container.writesBytes') || '写入字节' },
-  { prop: 'readsBytes', label: t('system.anomaly.container.readsBytes') || '读取字节' },
-  { prop: 'receiveBytes', label: t('system.anomaly.container.receiveBytes') || '接收字节' },
-  { prop: 'transmitBytes', label: t('system.anomaly.container.transmitBytes') || '传输字节' },
-  { prop: 'receivePackets', label: t('system.anomaly.container.receivePackets') || '接收包数' },
-  { prop: 'transmitPackets', label: t('system.anomaly.container.transmitPackets') || '传输包数' }
+  { prop: 'processes', label: '进程数', unit: '' },
+  { prop: 'cpuUsage', label: 'CPU使用率', unit: '%' },
+  { prop: 'memory', label: '内存使用', unit: 'B' },
+  { prop: 'writesBytes', label: '写入字节', unit: 'B' },
+  { prop: 'readsBytes', label: '读取字节', unit: 'B' },
+  { prop: 'receiveBytes', label: '接收字节', unit: 'B' },
+  { prop: 'transmitBytes', label: '传输字节', unit: 'B' },
+  { prop: 'receivePackets', label: '接收包数', unit: '' },
+  { prop: 'transmitPackets', label: '传输包数', unit: '' }
 ]
 
 // 网络指标定义
 const networkMetricFields = [
-  { prop: 'jitter', label: t('system.anomaly.network.jitter') || '抖动' },
-  { prop: 'throughout', label: t('system.anomaly.network.throughout') || '吞吐量' },
-  { prop: 'packetLoss', label: t('system.anomaly.network.packetLoss') || '丢包率' },
-  { prop: 'rtt', label: t('system.anomaly.network.rtt') || '往返时延' }
+  { prop: 'jitter', label: '抖动', unit: 'ms' },
+  { prop: 'throughout', label: '吞吐量', unit: 'Mbps' },
+  { prop: 'packetLoss', label: '丢包率', unit: '%' },
+  { prop: 'rtt', label: '往返时延', unit: 'ms' }
 ]
 
 // 当前选中的指标集合
@@ -219,7 +220,7 @@ const networkColumns = computed(() => [
   }
 ])
 
-// 容器主表格列 (已调整宽度)
+// 容器主表格列
 const containerColumns = computed(() => [
   { type: 'index', width: 100 },
   { prop: 'containerName', label: t('system.anomaly.container.containerName'), width: 250 },
@@ -276,7 +277,7 @@ const fetchLastWindowMetrics = computed(() => {
 
 // ================= 6. 逻辑方法 =================
 
-// 监听类型变化 (切换 网络/容器)
+// 监听类型变化
 watch(() => filterParam.type, (newVal) => {
   if (newVal && newVal !== selectedType.value) {
     selectedType.value = newVal
@@ -286,7 +287,7 @@ watch(() => filterParam.type, (newVal) => {
     currentEntity.value = null
     currentMetric.value = null
     
-    // 【关键修改】切换类型时，立即生成该类型的空指标列表（全0.00），防止表格空白
+    // 立即显示空表格（0.00），避免短暂空白
     updateMetricsDataByEntity(null) 
     
     nextTick(() => {
@@ -298,36 +299,31 @@ watch(() => filterParam.type, (newVal) => {
 // 监听主表格数据加载
 watch(data, (val) => {
     if (val && val.length > 0) {
-        // 如果有数据，选中第一行，填充真实数据
         if (!currentEntity.value) {
             currentEntity.value = val[0]
         }
     } else {
-        // 【关键修改】如果主表格查不到数据，不要清空指标表，而是显示默认的 0.00 列表
         currentEntity.value = null
         updateMetricsDataByEntity(null)
     }
 })
 
-// 监听选中实体变化，更新指标列表
+// 监听选中实体变化
 watch(currentEntity, (val) => {
   if (val) {
     updateMetricsDataByEntity(val)
   }
 })
 
-// 更新指标数据 (强制生成行结构，确保不显示“暂无数据”)
+// 更新指标数据 (修改：添加单位处理)
 async function updateMetricsDataByEntity(entity) {
-  // 1. 即使 entity 是 null，我们也定义一个空对象，用来触发下面的默认值 0.00 逻辑
-  // 这样保证表格永远有行，只是数值为 0.00
   let dataObj = entity || {}
   
-  // 2. 只有当 entity 真实存在且有具体名称时，才去尝试请求接口获取更详细的数据
   if (entity) {
       try {
         const res = await fetchEntityData.value(entity)
         if (res?.data?.list && Array.isArray(res.data.list)) {
-            dataObj = { ...entity, ...res.data.list[0] } // 合并列表数据和详情数据
+            dataObj = { ...entity, ...res.data.list[0] }
         } else if (res?.data?.list) {
             dataObj = { ...entity, ...res.data.list }
         }
@@ -336,15 +332,11 @@ async function updateMetricsDataByEntity(entity) {
       }
   }
 
-  // 3. 核心修正：永远根据 metricFields 生成完整的行数据
-  // 确保 metricFields 已定义，如果未定义则给空数组防崩
   const fields = metricFields.value || []
   
   metricsData.value = fields.map(field => {
-    // 尝试取值
     const rawValue = dataObj[field.prop]
     
-    // 强力兜底：只要值无效，统一显示 0.00
     const displayValue = (rawValue === null || rawValue === undefined || rawValue === '') 
       ? '0.00' 
       : String(rawValue)
@@ -353,13 +345,11 @@ async function updateMetricsDataByEntity(entity) {
       name: field.label, 
       prop: field.prop,  
       value: displayValue, 
-      unit: ''           
+      unit: field.unit || '' // 绑定单位
     }
   })
   
-  // 趋势图联动
   if (showTrendPanel.value && metricsData.value.length > 0 && !currentMetric.value) {
-    // 使用 nextTick 避免在渲染前更新
     nextTick(() => {
        updateChartData(metricsData.value[0])
     })
@@ -450,12 +440,12 @@ async function updateChartData(metric) {
     let params = {}
     if (selectedType.value === 'network') {
       params = {
-        streamIp: currentEntity.value.networkName,
+        streamIp: currentEntity.value?.networkName || '',
         metric: metric.prop
       }
     } else {
       params = {
-        containerName: currentEntity.value.containerName,
+        containerName: currentEntity.value?.containerName || '',
         metric: metric.prop
       }
     }
@@ -463,7 +453,7 @@ async function updateChartData(metric) {
     const res = await fetchLastWindowMetrics.value(params)
     const newData = res.data.data || []
 
-    const metricName = t(`system.anomaly.${selectedType.value}.${metric.prop}`) || metric.prop
+    const metricName = metric.name || metric.prop
     const chartTitle = `${metricName}趋势分析`
     optionArr.value[0].title.text = chartTitle
     optionArr.value[0].series[0].name = metric.prop
@@ -489,6 +479,9 @@ async function updateChartData(metric) {
 
 let refreshTimer = null
 onMounted(() => {
+  // 核心修复：一进入页面，立即渲染默认的（网络）指标表格，即使没有数据也显示0.00
+  updateMetricsDataByEntity(null)
+
   nextTick(() => {
     tableRef.value?.fetchQuery?.()
   })
@@ -497,7 +490,6 @@ onMounted(() => {
     if (tableRef.value && tableRef.value.fetchQuery) {
         await tableRef.value.fetchQuery();
     }
-    // 自动刷新当前指标
     if (currentEntity.value) {
       await updateMetricsDataByEntity(currentEntity.value)
     }
@@ -515,14 +507,16 @@ onUnmounted(() => {
   border: 2px solid rgb(0, 251, 255); /* 蓝色边框调试用 */
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 40px);
+  height: calc(100vh - 40px); /* 占据全屏高度减去 header/footer */
   gap: 10px;
   padding: 10px;
   box-sizing: border-box;
+  overflow: hidden; /* 禁止根容器滚动 */
 
+  /* 上方主表格 */
   .m-table {
-    flex: 1;
-    min-height: 0; 
+    height: 450px; /* 固定高度比例，防止过高 */
+    flex-shrink: 0;
     border: 2px solid rgb(255, 0, 51); /* 红色边框调试用 */
 
     /* ------------------- 以下为同步的搜索栏与表格样式 ------------------- */
@@ -535,41 +529,36 @@ onUnmounted(() => {
       line-height: 1.5;
     }
 
-    /* 2. 顶部搜索框 (Top Filter) 样式 - 单行布局 */
+    /* 2. 顶部搜索框 (Top Filter) 样式 */
     :deep(.top-filter) {
-      /* 搜索项间距 */
       .el-form-item {
         margin-right: 15px;
         margin-bottom: 10px;
       }
-      /* 输入框宽度限制 - 根据需要稍微调宽适应实体类型 */
       .el-input, .el-select {
         width: 180px; 
       }
-      /* Label字体 (如: 实体类型) */
       .el-form-item__label {
         font-size: 32px; 
         font-weight: bold;
         color: #333;
       }
-      /* 输入框内容字体 */
       .el-input__inner {
         font-size: 24px;
       }
-      /* 按钮字体 */
       .el-button {
         font-size: 24px;
       }
     }
 
-    /* 3. 操作栏链接文字大小 */
+    /* 3. 操作栏链接 */
     :deep(.operation-button) {
       .el-link {
         font-size: 24px;
       }
     }
 
-    /* 4. 分页栏总数/选中数文字大小 */
+    /* 4. 分页栏 */
     :deep(.total-view) {
       font-size: 24px;
       color: #333;
@@ -580,9 +569,8 @@ onUnmounted(() => {
       }
     }
 
-    /* 5. 全局表单控件强行覆盖 (Input, Select) */
+    /* 5. 全局表单控件覆盖 */
     :deep(.el-form-item) {
-      /* Label */
       .el-form-item__label {
         font-size: 24px !important;
         line-height: 40px;
@@ -590,25 +578,19 @@ onUnmounted(() => {
         display: flex;
         align-items: center;
       }
-
-      /* Input */
       .el-input {
         font-size: 24px !important;
         height: 40px !important;
-        
         .el-input__wrapper {
           height: 40px !important;
           padding: 0 15px !important;
         }
-        
         .el-input__inner {
           height: 40px !important;
           line-height: 40px !important;
           font-size: 24px !important;
         }
       }
-
-      /* Select (下拉框) 特殊处理 */
       .el-select {
         .el-select__wrapper {
           height: 40px !important;
@@ -624,7 +606,6 @@ onUnmounted(() => {
           height: 40px !important;
           font-size: 24px !important;
         }
-        /* 修复 placeholder 位置 */
         .el-select__placeholder {
           font-size: 24px !important;
           position: absolute !important;
@@ -641,7 +622,6 @@ onUnmounted(() => {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        /* 选中项 */
         .el-select__selected-item {
           font-size: 24px !important;
           line-height: 40px !important;
@@ -650,7 +630,7 @@ onUnmounted(() => {
       }
     }
 
-    /* 6. 右侧功能按钮 (新增, 批量启用等) */
+    /* 6. 按钮 */
     :deep(.right-action) {
       .el-button {
         font-size: 24px !important;
@@ -662,13 +642,12 @@ onUnmounted(() => {
       }
     }
     
-    // 美化m-table样式
+    /* 表格样式美化 */
     :deep(.el-table) {
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
-      /* 1. 表头样式 (Header) */
       .el-table__header th {
         background-color: var(--el-fill-color-light);
         color: var(--el-text-color-primary);
@@ -677,7 +656,6 @@ onUnmounted(() => {
         height: 60px !important;
         text-align: center !important;
         border-bottom: 2px solid var(--el-border-color-lighter);
-
         .cell {
           justify-content: center !important;
           display: flex;
@@ -686,13 +664,11 @@ onUnmounted(() => {
         }
       }
 
-      /* 2. 表格内容样式 */
       .el-table__body td {
         font-size: 32px !important;
         height: 60px !important;
         padding: 12px 0 !important;
         border-bottom: 1px solid var(--el-border-color-extra-light);
-
         .cell {
           font-size: 32px !important;
           line-height: 36px !important;
@@ -704,21 +680,17 @@ onUnmounted(() => {
         }
       }
 
-      /* 3. 行样式 (Row) */
       .el-table__row {
         height: 60px !important;
         transition: background-color 0.3s ease;
-
         &:hover {
           background-color: var(--el-fill-color-extra-light);
         }
-
         &:nth-child(even) {
           background-color: rgba(0, 0, 0, 0.02);
         }
       }
 
-      /* 4. 操作按钮美化 (Button) */
       .el-button {
         border-radius: 6px;
         font-weight: 500;
@@ -726,17 +698,14 @@ onUnmounted(() => {
         padding: 8px 16px;
         height: auto;
         transition: all 0.3s ease;
-
         &:hover {
           transform: translateY(-1px);
         }
-        
         .el-icon {
             font-size: 24px !important;
         }
       }
 
-      /* 5. 去除多余边框 */
       &.el-table--border {
         border-left: none;
         border-right: none;
@@ -745,11 +714,10 @@ onUnmounted(() => {
     }
   }
 
-  /* 下方指标区域样式 - 适配 */
+  /* 下方指标与趋势区域 */
   .metric-content {
-    /* 固定一个合适的高度 */
-    height: 650px; 
-    flex-shrink: 0;
+    height: 650px; /* 自动填充剩余高度，不写死 px，避免溢出 */
+    min-height: 0; /* 允许 flex item 压缩 */
     
     border: 2px solid rgb(0, 255, 0); 
     padding: 10px;
@@ -759,11 +727,9 @@ onUnmounted(() => {
     display: flex;
     gap: 10px;
 
-
-    /* --- 左侧表格区域 (样式完全复刻 QoE 分析页面) --- */
+    /* --- 左侧表格区域 --- */
     .metrics-table {
-      /* 增加宽度以容纳大字体 */
-      width: 750px; 
+      width: 650px; /* 【修改】宽度设为 650px，比 QoE 的 560px 宽，又不至于挤占太多右侧空间 */
       flex-shrink: 0;
       
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -776,12 +742,10 @@ onUnmounted(() => {
       flex-direction: column;
       height: 100%;
 
-      /* 定义大字体变量 (32px) */
       --metrics-font-size: 32px;
       --metrics-header-font-size: 32px;
-      --metrics-unit-font-size: 32px;
+      --metrics-unit-font-size: 24px; /* 单位字体稍小 */
 
-      /* 标题样式 */
       .metrics-title {
         margin: 0 0 10px 0;
         font-size: 32px; 
@@ -799,7 +763,6 @@ onUnmounted(() => {
           margin-right: 8px;
           font-size: 32px;
         }
-        
         &::after {
           content: '';
           position: absolute;
@@ -814,7 +777,6 @@ onUnmounted(() => {
         }
       }
 
-      /* 表格深度定制 */
       :deep(.el-table) {
         font-size: var(--metrics-font-size);
         border-radius: 10px;
@@ -823,12 +785,10 @@ onUnmounted(() => {
         border: none;
         background: #ffffff;
         table-layout: fixed;
-        
         flex: 1;
         display: flex;
         flex-direction: column;
 
-        /* 让表格内部占满高度 */
         .el-table__inner-wrapper {
           height: 100% !important;
           display: flex;
@@ -844,7 +804,6 @@ onUnmounted(() => {
           }
         }
         
-        /* 表头样式 */
         .el-table__header-wrapper {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           flex-shrink: 0;
@@ -853,13 +812,12 @@ onUnmounted(() => {
             font-size: var(--metrics-header-font-size);
             font-weight: 700;
             background: transparent !important;
-            color: #333333 !important; /* 深色字体 */
+            color: #333333 !important; 
             height: 60px;
             border-bottom: none;
             position: relative;
             white-space: nowrap;
             padding: 10px 5px;
-            
             &::before {
               content: '';
               position: absolute;
@@ -869,7 +827,6 @@ onUnmounted(() => {
               height: 2px;
               background: rgba(255, 255, 255, 0.3);
             }
-            
             .cell {
               display: flex;
               align-items: center;
@@ -880,8 +837,11 @@ onUnmounted(() => {
           }
         }
         
-        /* 表体样式 */
         .el-table__body {
+          width: 100% !important;
+          table-layout: fixed !important;
+          height: 100%; /* 【新增】关键点：强制表格主体撑满高度，这样行就会自动均匀分布 */
+
           td {
             font-size: var(--metrics-font-size);
             line-height: 1.5; 
@@ -895,69 +855,60 @@ onUnmounted(() => {
             text-overflow: ellipsis;
             box-sizing: border-box;
             
-            /* 关键：使用 Flex 布局让内容垂直居中 */
             .cell {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 height: 100%;
                 line-height: normal;
-                white-space: nowrap;
             }
-
             &:last-child {
               border-right: none;
             }
-            
-            /* 第一列：指标名称 */
-            &:nth-child(1) {
-              font-weight: 500;
-              color: var(--el-text-color-primary);
-            }
-            
-            /* 第二列：数值 */
-            &:nth-child(2) {
-              .metric-value {
-                font-weight: 600;
-                color: var(--el-color-primary);
-                font-family: 'Consolas', 'Monaco', monospace;
-                font-size: 32px; /* 强制数值字体大小 */
-              }
+            /* ...省略中间列样式配置... */
+            &:nth-child(3) {
+              padding: 0 5px;
             }
           }
-          tr { height: 100%; }
+          
+          /* 【修改】关键点：删除之前的 tr { height: 100% }，不需要专门设置 tr 高度 */
+          /* 如果您之前写了 tr { height: 100%; } 请务必删掉或注释掉 */
         }
 
-        /* 鼠标悬停效果 */
         .el-table__row:hover {
           background: linear-gradient(90deg, rgba(64, 158, 255, 0.08), rgba(103, 126, 234, 0.05)) !important;
           td { border-bottom-color: rgba(64, 158, 255, 0.2); }
         }
         
-        /* 斑马纹 */
         .el-table__row:nth-child(even) {
           background: linear-gradient(90deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
         }
 
-        /* 按钮样式 */
         .el-button {
           border-radius: 8px;
           padding: 8px 16px; 
           font-weight: 600;
-          font-size: 24px; /* 按钮字体稍微小一点点，协调 */
+          font-size: 32px;
           height: auto;
           background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
           border: none;
           color: white;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+          min-width: 80px;
           
           &:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(64, 158, 255, 0.4);
+            background: linear-gradient(135deg, var(--el-color-primary-light-3), var(--el-color-primary));
+          }
+          &:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
           }
         }
 
-        /* 去除多余边框 */
         &.el-table--border {
           border: none;
           &::after { display: none; }
@@ -965,15 +916,37 @@ onUnmounted(() => {
           td:last-child, th:last-child { border-right: none; }
         }
         
-        /* 强制覆盖列宽控制 */
+        &.el-table--striped .el-table__body tr.el-table__row--striped td {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        
+        .el-table__header th .el-table__column-filter-trigger { display: none; }
+        
+        .el-table__header-wrapper .el-table__header th {
+          user-select: none;
+          resize: none;
+          &::after { display: none !important; }
+        }
+        
         .el-table__header colgroup col, .el-table__body colgroup col { width: auto !important; }
-        .el-table__body, .el-table__header { width: 100% !important; table-layout: fixed !important; }
+        
+        .el-table__body, .el-table__header {
+          width: 100% !important;
+          table-layout: fixed !important;
+        }
+        
+        .el-table__body-wrapper, .el-table__header-wrapper {
+          width: 100% !important;
+          overflow: hidden;
+        }
+        
+        .el-table__cell { box-sizing: border-box !important; }
       }
     }
 
     /* --- 右侧图表区域 --- */
     .right-content {
-      flex: 1;
+      flex: 1; /* 自动占满右侧剩余空间 */
       height: 100%; 
       padding: 15px;
       border-radius: 12px;
@@ -998,7 +971,6 @@ onUnmounted(() => {
           margin-right: 8px;
           font-size: 32px;
         }
-        
         &::after {
           content: '';
           position: absolute;
@@ -1029,20 +1001,20 @@ onUnmounted(() => {
       }
     }
   }
-}
 
-.width-shrink-layout {
-  .root {
-    height: auto;
-    flex-wrap: wrap;
-    :deep(.el-table__inner-wrapper) {
-      .el-table__body-wrapper {
-        .el-scrollbar__wrap {
-          overflow-y: hidden;
-        }
-        .el-scrollbar__bar {
-          &.is-vertical {
-            display: none;
+  .width-shrink-layout {
+    .root {
+      height: auto;
+      flex-wrap: wrap;
+      :deep(.el-table__inner-wrapper) {
+        .el-table__body-wrapper {
+          .el-scrollbar__wrap {
+            overflow-y: hidden;
+          }
+          .el-scrollbar__bar {
+            &.is-vertical {
+              display: none;
+            }
           }
         }
       }
